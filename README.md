@@ -31,5 +31,7 @@ Because this has been made for a very specific purpose, a conversion only takes 
 ## Reference Repositories
 
 [svgcode Library](https://npm.io/package/svgcode)
+
 [Jimp Library](https://www.npmjs.com/package/jimp)
-[Potrace Library]([[https://npm.io/package/svgcode](https://www.npmjs.com/package/potrace)
+
+[Potrace Library](https://www.npmjs.com/package/potrace)
