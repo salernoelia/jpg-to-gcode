@@ -4,6 +4,17 @@ const potrace = require("potrace");
 const Jimp = require("jimp");
 const svgcode = require("svgcode");
 
+// Convert JPG to BMP
+function convertToBMP(inputJPGPath, outputBMPPath, callback) {
+  Jimp.read(inputJPGPath)
+    .then((image) => image.quality(100).writeAsync(outputBMPPath))
+    .then(() => {
+      console.log(`Converted to BMP: ${outputBMPPath}`);
+      if (callback) callback();
+    })
+    .catch((error) => console.error(`Error converting to BMP: ${error}`));
+}
+
 // Convert BMP to SVG
 function convertToSVG(bmpInputPath, outputSVGPath, callback) {
   const trace = new potrace.Potrace({
@@ -20,16 +31,8 @@ function convertToSVG(bmpInputPath, outputSVGPath, callback) {
   });
 }
 
-// Convert JPG to BMP
-function convertToBMP(inputJPGPath, outputBMPPath, callback) {
-  Jimp.read(inputJPGPath)
-    .then((image) => image.quality(100).writeAsync(outputBMPPath))
-    .then(() => {
-      console.log(`Converted to BMP: ${outputBMPPath}`);
-      if (callback) callback();
-    })
-    .catch((error) => console.error(`Error converting to BMP: ${error}`));
-}
+
+
 
 // Convert SVG to G-code
 function convertToGCode(inputSVGPath, outputGCodePath) {
@@ -44,7 +47,7 @@ function convertToGCode(inputSVGPath, outputGCodePath) {
 
 // Process JPG files to G-code
 function processJPGToGCode() {
-  const jpgInputFolder = "./jpg";
+  const jpgOutputFolder = "./jpg";
   const bmpOutputFolder = "./bitmap";
   const svgOutputFolder = "./svg";
   const gcodeOutputFolder = "./gcode";
@@ -53,11 +56,11 @@ function processJPGToGCode() {
   if (!fs.existsSync(svgOutputFolder)) fs.mkdirSync(svgOutputFolder);
   if (!fs.existsSync(gcodeOutputFolder)) fs.mkdirSync(gcodeOutputFolder);
 
-  const jpgFiles = fs.readdirSync(jpgInputFolder);
+  const jpgFiles = fs.readdirSync(jpgOutputFolder);
 
   jpgFiles.forEach((file) => {
     if (path.extname(file).toLowerCase() === ".jpg" || path.extname(file).toLowerCase() === ".jpeg") {
-      const inputPath = path.join(jpgInputFolder, file);
+      const inputPath = path.join(jpgOutputFolder, file);
       const bmpOutputPath = path.join(bmpOutputFolder, path.basename(file, ".jpg") + ".bmp");
       const svgOutputPath = path.join(svgOutputFolder, path.basename(file, ".jpg") + ".svg");
       const gcodeOutputPath = path.join(gcodeOutputFolder, path.basename(file, ".jpg") + ".gcode");
