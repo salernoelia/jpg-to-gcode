@@ -3,35 +3,52 @@ const path = require("path");
 const potrace = require("potrace");
 const Jimp = require("jimp");
 const svgcode = require("svgcode");
-const { spawn } = require('child_process');
+const { execSync } = require('child_process'); // Import execSync function
 
-
-// convert JPG to BMP
-function convertToBMP(inputJPGPath, outputBMPPath, callback) {
+// convert JPG to png
+function convertTopng(inputJPGPath, outputpngPath, callback) {
   Jimp.read(inputJPGPath)
-    .then((image) => image.quality(100).writeAsync(outputBMPPath))
+    .then((image) => image.quality(100).writeAsync(outputpngPath))
     .then(() => {
-      console.log(`Converted to BMP: ${outputBMPPath}`);
+      console.log(`Converted to png: ${outputpngPath}`);
       if (callback) callback(); // Callback function to continue after conversion
     })
-    .catch((error) => console.error(`Error converting to BMP: ${error}`));
+    .catch((error) => console.error(`Error converting to png: ${error}`));
 }
 
-// convert BMP to SVG
-function convertToSVG(bmpInputPath, outputSVGPath, callback) {
+// Function to convert PNG to SVG with reduced and compatible settings
+function convertToSVG(pngInputPath, outputSVGPath, callback) {
   const trace = new potrace.Potrace({
-    color: "#000000",
-    background: "#FFFFFF",
-    threshold: 100,
+    color: "#000000", // Output color (black)
+    background: "transparent", // Transparent background
+    threshold: 200, // Adjust the threshold (0-255) as needed
+    turnPolicy: potrace.Potrace.TURNPOLICY_BLACK, // Use TURNPOLICY_BLACK for fewer curves
+    optCurve: true, // Enable curve optimization
+    optTolerance: 0.2, // Tolerance for curve optimization (adjust if necessary)
   });
 
-  trace.loadImage(bmpInputPath, (err) => {
-    if (err) return console.error(`Error loading BMP image: ${err}`);
-    fs.writeFileSync(outputSVGPath, trace.getSVG());
-    console.log(`Converted to SVG: ${outputSVGPath}`);
+  trace.loadImage(pngInputPath, (err) => {
+    if (err) return console.error(`Error loading png image: ${err}`);
+    trace.turdSize = 2;
+    const svgContent = trace.getSVG();
+    
+    // Add XML declaration and SVG namespace to the SVG content
+    const xmlDeclaration = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>';
+    const svgNamespace = 'xmlns="http://www.w3.org/2000/svg"';
+    
+    const svgWithXML = `${xmlDeclaration}<svg ${svgNamespace}>${svgContent}</svg>`;
+    
+    // Write the modified SVG content to the output file
+    fs.writeFileSync(outputSVGPath, svgWithXML);
+
+    // Minify the SVG using SVGO
+    execSync(`npx svgo -i ${outputSVGPath} -o ${outputSVGPath} --pretty --indent=2`);
+    console.log(`Converted to SVG and minified: ${outputSVGPath}`);
+    
     if (callback) callback(); // Callback function to continue after conversion
   });
 }
+
 
 // convert SVG to G-code
 function convertToGCode(inputSVGPath, outputGCodePath) {
@@ -47,11 +64,11 @@ function convertToGCode(inputSVGPath, outputGCodePath) {
 
 function processJPGToGCode() {
   const jpgInputFolder = "./jpg";
-  const bmpOutputFolder = "./bitmap";
+  const pngOutputFolder = "./png";
   const svgOutputFolder = "./svg";
   const gcodeOutputFolder = "./gcode";
 
-  if (!fs.existsSync(bmpOutputFolder)) fs.mkdirSync(bmpOutputFolder);
+  if (!fs.existsSync(pngOutputFolder)) fs.mkdirSync(pngOutputFolder);
   if (!fs.existsSync(svgOutputFolder)) fs.mkdirSync(svgOutputFolder);
   if (!fs.existsSync(gcodeOutputFolder)) fs.mkdirSync(gcodeOutputFolder);
 
@@ -59,10 +76,11 @@ function processJPGToGCode() {
   const convertedFiles = fs.readdirSync(gcodeOutputFolder).map(file => path.basename(file, ".gcode"));
 
   jpgFiles.forEach((file) => {
+    
     if (path.extname(file).toLowerCase() === ".jpg" || path.extname(file).toLowerCase() === ".jpeg") {
       const fileNameWithoutExtension = path.basename(file, ".jpg");
       const inputPath = path.join(jpgInputFolder, file);
-      const bmpOutputPath = path.join(bmpOutputFolder, fileNameWithoutExtension + ".bmp");
+      const pngOutputPath = path.join(pngOutputFolder, fileNameWithoutExtension + ".png");
       const svgOutputPath = path.join(svgOutputFolder, fileNameWithoutExtension + ".svg");
       const gcodeOutputPath = path.join(gcodeOutputFolder, fileNameWithoutExtension + ".gcode");
 
@@ -71,8 +89,8 @@ function processJPGToGCode() {
       } else {
         console.log(`Converting ${file}`);
         try {
-          convertToBMP(inputPath, bmpOutputPath, () => {
-            convertToSVG(bmpOutputPath, svgOutputPath, () => {
+          convertTopng(inputPath, pngOutputPath, () => {
+            convertToSVG(pngOutputPath, svgOutputPath, () => {
               convertToGCode(svgOutputPath, gcodeOutputPath);
               console.log(`Conversion completed for ${file}`);
             });
