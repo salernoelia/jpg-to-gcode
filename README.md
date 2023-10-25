@@ -3,4 +3,6 @@ Converts jpg files to Bitmap, then it gets traced and output as a SVG and finall
 
 Install all dependencies:
 
-``npm install```
+```bash
+npm install
+```
