@@ -1,6 +1,6 @@
 ## jpg-to-gcode
 
-Quickly converts jpg files to: 
+Quickly convert jpg files to: 
 - Bitmap
 - SVG
 - Gcode.
@@ -8,8 +8,8 @@ Quickly converts jpg files to:
 ## Samples
 
 ![Original JPG](./jpg/0.jpg)
-![Bitmap](./bitmap/0.jpg)
-![SVG](./svg/0.jpg)
+![Bitmap](./bitmap/0.bmp)
+![SVG](./svg/0.svg)
 
 ## Guide
 
