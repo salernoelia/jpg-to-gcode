@@ -6,7 +6,7 @@ const svgcode = require("svgcode");
 const { spawn } = require('child_process');
 
 
-// Function to convert JPG to BMP
+// convert JPG to BMP
 function convertToBMP(inputJPGPath, outputBMPPath, callback) {
   Jimp.read(inputJPGPath)
     .then((image) => image.quality(100).writeAsync(outputBMPPath))
@@ -17,7 +17,7 @@ function convertToBMP(inputJPGPath, outputBMPPath, callback) {
     .catch((error) => console.error(`Error converting to BMP: ${error}`));
 }
 
-// Function to convert BMP to SVG
+// convert BMP to SVG
 function convertToSVG(bmpInputPath, outputSVGPath, callback) {
   const trace = new potrace.Potrace({
     color: "#000000",
@@ -33,7 +33,7 @@ function convertToSVG(bmpInputPath, outputSVGPath, callback) {
   });
 }
 
-// Function to convert SVG to G-code
+// convert SVG to G-code
 function convertToGCode(inputSVGPath, outputGCodePath) {
   try {
     const gcode = svgcode().loadFile(inputSVGPath).generateGcode().getGcode();
